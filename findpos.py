@@ -45,39 +45,44 @@ def readFile(csvFile, folder, targetFolder, prefixFolder):
         print("-" * 10 + poKey + "-" * 10)
 
         # find BSCS POs
-        result = searchFiles(poName + ".xml", folder)
-        if len(result) == 0:
+        resultBSCS = searchFiles(poName + ".xml", folder)
+        if len(resultBSCS) == 0:
             print("No BSCS POs found")
         else:
-            lastItem = result[len(result) - 1]
-            fileName = getFileName(lastItem)
-            onlyFolder = os.path.join(targetFolder, prefixFolder, poKey, "bscs")
-            if not os.path.exists(onlyFolder):
-                os.makedirs(onlyFolder)
-
-            finalTarget = os.path.join(onlyFolder, fileName)
-            print("copying " + fileName + " to " + onlyFolder)
-            copy(lastItem, finalTarget)
+            processItems(resultBSCS, targetFolder, prefixFolder, poKey, 'bscs')
 
         # find ECM POs
-        result = searchFiles(poName + ".zip", folder)
-        if len(result) == 0:
+        resultECM = searchFiles(poName + ".zip", folder)
+        if len(resultECM) == 0:
             print("No ECM POs found")
         else:
-            lastItem = result[len(result) - 1]
-            fileName = getFileName(lastItem)
-            onlyFolder = os.path.join(targetFolder, prefixFolder, poKey, "ecm")
-            if not os.path.exists(onlyFolder):
-                os.makedirs(onlyFolder)
-
-            finalTarget = os.path.join(onlyFolder, fileName)
-            print("copying " + fileName + " to " + onlyFolder)
-            copy(lastItem, finalTarget)
-
+            processItems(resultECM, targetFolder, prefixFolder, poKey, 'ecm')
+        
+        # find CS POs
+        resultCS = searchFiles("*" + poKey + "*.xml", folder)
+        if len(resultCS) == 0:
+            print("No CS POs found")
+        else:
+            processItems(resultCS, targetFolder, prefixFolder, poKey, 'cs')
     f.close()
 
+def processItems(result, targetFolder, prefixFolder, poKey, poType):
+    if poType == "cs":
+        items = result
+    else:
+        items = result[-1:]
+
+    for item in items:
+        fileName = getFileName(item)
+        onlyFolder = os.path.join(targetFolder, prefixFolder, poKey, poType)
+        if not os.path.exists(onlyFolder):
+            os.makedirs(onlyFolder)
+
+        finalTarget = os.path.join(onlyFolder, fileName)
+        print("copying " + fileName + " to " + onlyFolder)
+        copy(item, finalTarget)
+
 def searchFiles(criteria, folder):
-    #print("Searchin " + criteria + " in " + folder)
     result = []
     for path in Path(folder).rglob(criteria):
         result.append(path)
