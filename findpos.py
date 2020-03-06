@@ -4,10 +4,12 @@ import glob
 import ntpath
 from pathlib import Path
 from shutil import copy
+from shutil import copytree
+from shutil import ignore_patterns
 
 def main():
     if not len(sys.argv) == 4:
-        print("Usage: python findpos.py <file.csv> <folder> <targetFolder>")
+        print("Usage: python findpos.py <file.csv> <sourcefolder> <targetFolder>")
         sys.exit(-1)
     
     csvFile = sys.argv[1]
@@ -82,6 +84,15 @@ def processItems(result, targetFolder, prefixFolder, poKey, poType):
         print("copying " + fileName + " to " + onlyFolder)
         copy(item, finalTarget)
 
+        if (poType == "ecm"):
+            pathPO = getPathOfFile(item)
+            parentPathPO = getPathOfFile(pathPO)
+            lastPODirectory = getFileName(pathPO)
+            # print(pathPO)
+            # print(lastPODirectory)
+            copytree(parentPathPO, os.path.join(targetFolder, "ecm"), ignore=ignore_patterns(lastPODirectory),dirs_exist_ok=True)
+            
+
 def searchFiles(criteria, folder):
     result = []
     for path in Path(folder).rglob(criteria):
@@ -95,6 +106,9 @@ def getFileName(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)  
 
+def getPathOfFile(path):
+    head, tail = ntpath.split(path)
+    return head
 
 if __name__ == "__main__" :
     main()
